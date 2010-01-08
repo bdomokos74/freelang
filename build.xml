@@ -1,0 +1,24 @@
+<project xmlns:ivy="antlib:org.apache.ivy.ant" name="helloword-hibernate"
+         default="common-lib.build-jar" basedir=".">
+
+    <dirname property="root.dir" file="${ant.file.helloword-hibernate}"/>
+    
+    <property file="${user.home}/.build.local.properties" />
+    <property file="${root.dir}/build.properties" />
+
+    <target name="download-scripts" description="-> Downloads the common build scripts.">
+        <mkdir dir="${root.dir}/script"/>
+        <get src="${script.svn.url}/common.xml" dest="${script.dir}/common.xml"/>
+        <get src="${script.svn.url}/common-lib.xml" dest="${script.dir}/common-lib.xml"/>
+        <get src="${script.svn.url}/common-findbugs.xml" dest="${script.dir}/common-findbugs.xml"/>
+    </target>
+
+    <import file="${root.dir}/script/common-lib.xml" optional="true"/>
+    <import file="${root.dir}/script/common-findbugs.xml" optional="true"/>
+
+    <!--
+    This file should contain the project specific build targets. Do not put them in build.xml, use custom.xml.
+    -->
+    <import file="${root.dir}/custom.xml" optional="true"/>
+</project>
+   

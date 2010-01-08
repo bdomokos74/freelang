@@ -1,0 +1,18 @@
+<project name="custom">
+    <property name="database.dir" value="${target.dir}/hsqldb" />
+    <target name="startdb" depends="init" description="Run HSQL database server with clean DB">
+        <!-- Delete database files -->
+        <delete dir="${database.dir}"/>
+        <java classname="org.hsqldb.Server"
+              fork="yes"
+              failonerror="true">
+            <arg value="-database.0"/>
+            <arg value="file:${database.dir}/db"/>
+            <classpath >
+                <pathelement location="${compile.dir}"/>
+                <pathelement location="${test.compile.dir}"/>
+                <path refid="test.compile.classpath"/>
+            </classpath>
+        </java>
+    </target>
+</project>
