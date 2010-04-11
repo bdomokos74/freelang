@@ -1,0 +1,25 @@
+Freelang is an application to help studying languages.
+
+To run the system tests enter:
+ant run.systemtest
+
+To run the application:
+ant run.app (TODO)
+
+To create a distribution of the application:
+ant dist (TODO)
+
+TODO:
+- webapp for user interface (struts2)
+- build script to run webapp with embedded tomcat
+- selenium tests, build script to run selenium tests
+- webservice with RESTlet for accessing the data from the webapp
+- support for storing the data in AmazonWS
+- GWT webapp (?)
+
+User stories to implement:
+- add dictionnary items
+- add tags for items
+- print a list of items into pdf file
+- quiz
+
