@@ -1,5 +1,15 @@
-<project name="custom">
-    <property name="database.dir" value="${target.dir}/hsqldb" />
+<project name="custom" xmlns:ivy="antlib:org.apache.ivy.ant">
+
+    <target name="-custom.init" depends="init">
+        <taskdef resource="net/sf/antcontrib/antcontrib.properties">
+            <classpath>
+                <path refid="script.classpath"/>
+            </classpath>
+        </taskdef>
+    </target>
+
+    
+    <property name="database.dir" value="${target.dir}/hsqldb"/>
     <target name="startdb" depends="init" description="Run HSQL database server with clean DB">
         <!-- Delete database files -->
         <delete dir="${database.dir}"/>
@@ -8,11 +18,102 @@
               failonerror="true">
             <arg value="-database.0"/>
             <arg value="file:${database.dir}/db"/>
-            <classpath >
+            <classpath>
                 <pathelement location="${compile.dir}"/>
                 <pathelement location="${test.compile.dir}"/>
                 <path refid="test.compile.classpath"/>
             </classpath>
         </java>
     </target>
+
+    <target name="run.systemtest" depends="-custom.init">
+        <!--<trycatch>-->
+            <!--<try>-->
+                <parallel failonany="true">
+                    <sequential>
+
+                        <echo message="calling db.start"/>
+                        <antcall target="-db.start"/>
+
+                    </sequential>
+                    <sequential>
+
+                        <echo message="WAIT FOR HSQL DONE"/>
+                        <waitfor maxwait="30000" checkevery="100" timeoutproperty="db.start.timeout.app">
+                            <socket server="127.0.0.1" port="9001"/>
+                        </waitfor>
+
+                        <fail if="db.start.timeout.app" message="HSQL not started"/>
+
+                        <antcall target="system-test"/>
+
+                        <property name="end.flag" value=""/>
+                    </sequential>
+                    <sequential>
+
+                        <waitfor maxwait="1200000" checkevery="1000" timeoutproperty="ant.timeout">
+                            <isset property="end.flag"/>
+                        </waitfor>
+
+                        <fail if="application.start.timeout" message="FAILED FINISH"/>
+                        <echo message="FINISH"/>
+
+                        <antcall target="-db.stop"/>
+                    </sequential>
+                </parallel>
+            <!--</try>-->
+            <!--<catch>-->
+                <antcall target="-db.stop"/>
+                <!--<fail/>-->
+            <!--</catch>-->
+        <!--</trycatch>-->
+    </target>
+
+    <target name="-if.db.stop" unless="db.port.used">
+        <antcall target="-db.stop"/>
+    </target>
+
+    <target name="-db.start" depends="init" description="Run HSQL database server with clean DB">
+
+        <waitfor maxwait="1000" checkevery="100" timeoutproperty="db.port.used">
+            <socket server="127.0.0.1" port="9001"/>
+        </waitfor>
+
+        <antcall target="-if.db.stop"/>
+
+        <!-- Delete database files -->
+        <delete dir="${database.dir}"/>
+        <java classname="org.hsqldb.Server"
+              fork="yes"
+              failonerror="true">
+            <arg value="-database.0"/>
+            <arg value="file:${database.dir}/db"/>
+            <classpath>
+                <pathelement location="${compile.dir}"/>
+                <pathelement location="${test.compile.dir}"/>
+                <path refid="runtime.classpath"/>
+                <path refid="script.classpath"/>
+            </classpath>
+        </java>
+
+    </target>
+
+    <target name="-db.stop" depends="-custom.init">
+        <trycatch>
+            <try>
+                <sql driver="org.hsqldb.jdbcDriver"
+                     url="jdbc:hsqldb:hsql://localhost/"
+                     userid="sa"
+                     password=""
+                     classpathref="script.classpath"
+                     onerror="continue">
+                    SHUTDOWN;
+                </sql>
+            </try>
+            <catch>
+            </catch>
+        </trycatch>
+
+    </target>
+
 </project>

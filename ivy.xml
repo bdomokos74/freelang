@@ -1,5 +1,5 @@
 <ivy-module version="2.0">
-    <info organisation="hu.astrid" module="helloworld-hibernate" revision="0.0.1"/>
+    <info organisation="hu.astrid" module="freelang" revision="0.0.1"/>
     <configurations>
         <conf name="nodeploy"/>
         <conf name="default"/>
@@ -23,5 +23,6 @@
         <dependency org="log4j" name="log4j" rev="1.2.14" conf="default->default"/>
         <dependency org="org.slf4j" name="slf4j-log4j12" rev="1.4.2" conf="default->default"/>
 
+        <dependency org="ant-contrib" name="ant-contrib" rev="1.0b3" conf="script->default"/>
     </dependencies>
 </ivy-module>
