@@ -2,7 +2,7 @@
     <settings defaultResolver="chain"/>
     <resolvers>
         <chain name="chain">
-            <ibiblio name="ibiblio"/>
+            <ibiblio name="ibiblio" m2compatible="true"/>
         </chain>
     </resolvers>
 </ivysettings>
