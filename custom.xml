@@ -1,14 +1,20 @@
 <project name="custom" xmlns:ivy="antlib:org.apache.ivy.ant">
 
-    <target name="-custom.init" depends="init">
+    <target name="-custom-init" depends="init">
         <taskdef resource="net/sf/antcontrib/antcontrib.properties">
+            <classpath>
+                <path refid="script.classpath"/>
+            </classpath>
+        </taskdef>
+
+        <taskdef resource="cargo.tasks">
             <classpath>
                 <path refid="script.classpath"/>
             </classpath>
         </taskdef>
     </target>
 
-    
+
     <property name="database.dir" value="${target.dir}/hsqldb"/>
     <target name="startdb" depends="init" description="Run HSQL database server with clean DB">
         <!-- Delete database files -->
@@ -26,46 +32,46 @@
         </java>
     </target>
 
-    <target name="run.systemtest" depends="-custom.init">
+    <target name="run-systemtest" depends="-custom-init">
         <!--<trycatch>-->
-            <!--<try>-->
-                <parallel failonany="true">
-                    <sequential>
+        <!--<try>-->
+        <parallel failonany="true">
+            <sequential>
 
-                        <echo message="calling db.start"/>
-                        <antcall target="-db.start"/>
+                <echo message="calling db.start"/>
+                <antcall target="-db.start"/>
 
-                    </sequential>
-                    <sequential>
+            </sequential>
+            <sequential>
 
-                        <echo message="WAIT FOR HSQL DONE"/>
-                        <waitfor maxwait="30000" checkevery="100" timeoutproperty="db.start.timeout.app">
-                            <socket server="127.0.0.1" port="9001"/>
-                        </waitfor>
+                <echo message="WAIT FOR HSQL DONE"/>
+                <waitfor maxwait="30000" checkevery="100" timeoutproperty="db.start.timeout.app">
+                    <socket server="127.0.0.1" port="9001"/>
+                </waitfor>
 
-                        <fail if="db.start.timeout.app" message="HSQL not started"/>
+                <fail if="db.start.timeout.app" message="HSQL not started"/>
 
-                        <antcall target="system-test"/>
+                <antcall target="system-test"/>
 
-                        <property name="end.flag" value=""/>
-                    </sequential>
-                    <sequential>
+                <property name="end.flag" value=""/>
+            </sequential>
+            <sequential>
 
-                        <waitfor maxwait="1200000" checkevery="1000" timeoutproperty="ant.timeout">
-                            <isset property="end.flag"/>
-                        </waitfor>
+                <waitfor maxwait="1200000" checkevery="1000" timeoutproperty="ant.timeout">
+                    <isset property="end.flag"/>
+                </waitfor>
 
-                        <fail if="application.start.timeout" message="FAILED FINISH"/>
-                        <echo message="FINISH"/>
+                <fail if="application.start.timeout" message="FAILED FINISH"/>
+                <echo message="FINISH"/>
 
-                        <antcall target="-db.stop"/>
-                    </sequential>
-                </parallel>
-            <!--</try>-->
-            <!--<catch>-->
                 <antcall target="-db.stop"/>
-                <!--<fail/>-->
-            <!--</catch>-->
+            </sequential>
+        </parallel>
+        <!--</try>-->
+        <!--<catch>-->
+        <antcall target="-db.stop"/>
+        <!--<fail/>-->
+        <!--</catch>-->
         <!--</trycatch>-->
     </target>
 
@@ -98,7 +104,7 @@
 
     </target>
 
-    <target name="-db.stop" depends="-custom.init">
+    <target name="-db.stop" depends="-custom-init">
         <trycatch>
             <try>
                 <sql driver="org.hsqldb.jdbcDriver"
@@ -113,6 +119,22 @@
             <catch>
             </catch>
         </trycatch>
+    </target>
+
+    <available file="${target.dir}/tomcat" property="tomcat.installed"/>
+
+    <target name="install-tomcat" depends="-custom-init">
+        <cargo containerId="tomcat55" >
+            <zipUrlInstaller
+                    installUrl="http://xenia.sote.hu/ftp/mirrors/www.apache.org/tomcat/tomcat-5/v5.5.28/bin/apache-tomcat-5.5.28.zip"
+                    installDir="${target.dir}/tomcat"/>
+            <configuration>
+                <property name="cargo.servlet.port" value="8180"/>
+            </configuration>
+        </cargo>
+    </target>
+
+    <target name="run-tomcat" depends="install-tomcat">
 
     </target>
 

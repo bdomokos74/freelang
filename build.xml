@@ -6,7 +6,7 @@
     <property file="${user.home}/.build.local.properties" />
     <property file="${root.dir}/build.properties" />
 
-    <import file="${root.dir}/script/common-lib.xml" optional="true"/>
+    <import file="${root.dir}/script/common-web.xml" optional="true"/>
     <!--<import file="${root.dir}/script/common-findbugs.xml" optional="true"/>-->
 
     <!--

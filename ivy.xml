@@ -24,5 +24,14 @@
         <dependency org="org.slf4j" name="slf4j-log4j12" rev="1.4.2" conf="default->default"/>
 
         <dependency org="ant-contrib" name="ant-contrib" rev="1.0b3" conf="script->default"/>
+
+        <!--<dependency org="org.apache.struts" name="struts2-core" rev="2.1.8" conf="default->default; test->default"/>-->
+        <dependency org="org.apache.struts" name="struts2-convention-plugin" rev="2.1.8" conf="default->default"/>
+
+        <dependency org="javax.servlet" name="servlet-api" rev="2.5" conf="nodeploy->default"/>
+        <dependency org="jstl" name="jstl" rev="1.1.2" conf="default->default"/>
+        <dependency org="taglibs" name="standard" rev="1.1.2" conf="default->default"/>
+
+        <dependency org="org.codehaus.cargo" name="cargo-ant" rev="1.0" conf="script->default"/>
     </dependencies>
 </ivy-module>
