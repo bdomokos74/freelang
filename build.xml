@@ -13,5 +13,7 @@
     This file should contain the project specific build targets. Do not put them in build.xml, use custom.xml.
     -->
     <import file="${root.dir}/custom.xml" optional="true"/>
+    <import file="${script.dir}/hsqldb.xml"/>
+    <import file="${script.dir}/tomcat.xml"/>
 </project>
    

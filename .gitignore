@@ -3,3 +3,4 @@ freelang.ipr
 freelang.iws
 out/
 target/
+*.zip

@@ -1,6 +1,4 @@
-<?xml version="1.0"?>
-<project xmlns:ivy="antlib:org.apache.ivy.ant"
-         name="common" basedir=".">
+<project xmlns:ivy="antlib:org.apache.ivy.ant" name="common" basedir=".">
 
     <macrodef name="check-prop">
         <attribute name="propname"/>
@@ -9,8 +7,6 @@
                   message="Property @{propname} must be set."/>
         </sequential>
     </macrodef>
-
-    <!-- common structure of the project -->
 
     <dirname property="common.root.dir" file="${ant.file.common}"/>
     <property name="root.dir" value="${common.root.dir}/.."/>
@@ -35,37 +31,28 @@
 
     <property name="javadoc.dir" value="${target.dir}/javadoc"/>
 
-    <!-- reports -->
     <property name="ivy.report.dir" value="${target.dir}/reports/ivy-reports"/>
     <property name="test.report.dir" value="${target.dir}/reports"/>
 
-    <!-- ivy properties -->
-    <property name="ivy.install.version" value="2.1.0-rc2"/>
+    <property name="ivy.install.version" value="2.1.0"/>
     <property name="ivy.home" value="${user.home}/.ant"/>
     <property name="ivy.jar.dir" value="${ivy.home}/lib"/>
     <property name="ivy.jar.file" value="${ivy.jar.dir}/ivy.jar"/>
     <available file="${ivy.jar.file}" property="ivy.jar.found"/>
-
     <condition property="ivy.home" value="${env.IVY_HOME}">
         <isset property="env.IVY_HOME"/>
     </condition>
 
-    <!-- download ivy files -->
     <target name="download-ivy" unless="ivy.jar.found">
-
         <mkdir dir="${ivy.jar.dir}"/>
-
         <get src="http://repo1.maven.org/maven2/org/apache/ivy/ivy/${ivy.install.version}/ivy-${ivy.install.version}.jar"
              dest="${ivy.jar.file}" usetimestamp="true"/>
-
     </target>
 
     <target name="init-ivy" depends="download-ivy" description="ivy initilaziation">
-
         <path id="ivy.lib.path">
             <fileset dir="${ivy.jar.dir}" includes="*.jar"/>
         </path>
-
         <taskdef resource="org/apache/ivy/ant/antlib.xml"
                  uri="antlib:org.apache.ivy.ant" classpathref="ivy.lib.path"/>
     </target>
@@ -74,47 +61,37 @@
         <ivy:cleancache/>
     </target>
 
-    <target name="-pre-init"/>
-    <target name="-post-init"/>
+    <target name="init-common" depends="init-ivy">
+        <property name="ivy.settings.file" value="ivysettings.xml"/>
+        <ivy:settings file="${ivy.settings.file}"/>
+    </target>
 
-    <target name="init" depends="init-ivy">
+    <target name="init-script" depends="init-common">
+        <path id="script.classpath"/>
+        <ivy:cachepath pathid="script.classpath" conf="script"/>
+    </target>
 
-        <antcall target="-pre-init"/>
+    <target name="init-compile" depends="init-common">
+        <mkdir dir="${compile.dir}" />
+        <path id="compile.classpath"/>
+        <ivy:cachepath pathid="compile.classpath" conf="default"/>
+    </target>
 
+    <target name="init" depends="init-ivy, init-common, init-script, init-compile">
         <mkdir dir="${compile.dir}"/>
         <mkdir dir="${test.compile.dir}"/>
         <mkdir dir="${test.report.dir}"/>
 
-        <ivy:settings file="ivysettings.xml"/>
-        <ivy:resolve/>
-
-        <path id="compile.classpath"/>
-        <!-- just to avoid the red marks with syntax highlight -->
-        <ivy:cachepath pathid="compile.classpath" conf="default, nodeploy"/>
-
         <path id="test.compile.classpath"/>
         <ivy:cachepath pathid="test.compile.classpath" conf="default, nodeploy, test"/>
-        <!--<property name="test.compile.classpath" value="dontcare"/>-->
-
-        <path id="script.classpath"/>
-        <ivy:cachepath pathid="script.classpath" conf="script"/>
 
         <path id="runtime.classpath"/>
         <ivy:cachepath pathid="runtime.classpath" conf="script"/>
 
         <property environment="env"/>
-
-        <antcall target="-post-init"/>
-
     </target>
 
-    <target name="-pre-compile"/>
-    <target name="-post-compile"/>
-
-    <target name="compile" depends="init">
-
-        <antcall target="-pre-compile"/>
-
+    <target name="compile" depends="init-compile">
         <javac srcdir="${src.dir}" includes="**/*.java" encoding="utf-8"
                destdir="${compile.dir}"
                debug="true">
@@ -122,18 +99,9 @@
                 <path refid="compile.classpath"/>
             </classpath>
         </javac>
-
-        <antcall target="-post-compile"/>
-
     </target>
 
-    <target name="-pre-test-compile"/>
-    <target name="-post-test-compile"/>
-
     <target name="test-compile" depends="compile">
-
-        <antcall target="-pre-test-compile"/>
-
         <javac srcdir="${test.src.dir}" includes="**/*.java" encoding="utf-8"
                destdir="${test.compile.dir}"
                debug="true">
@@ -142,18 +110,9 @@
                 <pathelement location="${compile.dir}"/>
             </classpath>
         </javac>
-
-        <antcall target="-post-test-compile"/>
-
     </target>
 
-    <target name="-pre-test"/>
-    <target name="-post-test"/>
-
     <target name="test" depends="test-compile" description="-> Runs the JUnit tests">
-
-        <antcall target="-pre-test"/>
-
         <junit printsummary="yes" errorproperty="test.failed" failureproperty="test.failed">
             <formatter type="plain"/>
             <classpath>
@@ -173,10 +132,7 @@
         <fail if="test.failed">
             Tests failed. Check ${test.report.dir}.
         </fail>
-
-        <antcall target="-post-test"/>
     </target>
-
 
     <target name="systemtest-compile-java" depends="system-test-init, compile">
         <javac srcdir="${systemtest.src.dir}" includes="**/*.java"
@@ -191,13 +147,10 @@
     </target>
 
     <target name="system-test-init" depends="init">
-
         <mkdir dir="${systemtest.compile.dir}"/>
-
     </target>
 
     <target name="systemtest-compile" depends="system-test-init, systemtest-compile-java">
-
     </target>
 
     <target name="system-test" depends="system-test-init, systemtest-compile"
@@ -207,15 +160,15 @@
 
         <mkdir dir="${systemtest.report.dir}"/>
 
-        <junit printsummary="yes" failureproperty="system.tests.failed" errorproperty="system.tests.failed">
-            <!-- TODO: xml -->
-            <formatter type="plain"/>
+        <junit printsummary="yes" failureproperty="system.tests.failed" errorproperty="system.tests.failed" >
+            <formatter type="xml"/>
             <classpath>
                 <pathelement location="${compile.dir}"/>
                 <pathelement location="${resources.dir}"/>
                 <pathelement location="${systemtest.compile.dir}"/>
                 <pathelement location="${systemtest.resources.dir}"/>
                 <path refid="compile.classpath"/>
+                <path refid="runtime.classpath"/>
                 <path refid="test.compile.classpath"/>
             </classpath>
             <batchtest fork="yes" todir="${systemtest.report.dir}">
@@ -223,17 +176,7 @@
                     <include name="**/*Test.class"/>
                 </fileset>
             </batchtest>
-            <sysproperty key="db.url" value="${db.url}"/>
-            <sysproperty key="db.user" value="${db.user}"/>
-            <sysproperty key="db.pw" value="${db.pw}"/>
-            <sysproperty key="db.driver" value="${db.driver}"/>
-            <sysproperty key="db.dialect" value="${db.dialect}"/>
         </junit>
-
-        <fail if="system.tests.failed">
-            System tests failed, check ${test.report.dir}.
-        </fail>
-        <!-- TODO: call publish if each test passed -->
 
         <junitreport todir="${systemtest.report.dir}">
             <fileset dir="${systemtest.report.dir}">
@@ -241,6 +184,10 @@
             </fileset>
             <report format="frames" todir="${systemtest.report.dir}/html"/>
         </junitreport>
+
+        <fail if="system.tests.failed">
+            System tests failed, check ${test.report.dir}.
+        </fail>
     </target>
 
     <target name="showproperties" depends="init">

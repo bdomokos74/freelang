@@ -1,0 +1,66 @@
+<project name="hsqldb" xmlns:ivy="antlib:org.apache.ivy.ant">
+
+    <property name="database.dir" value="${target.dir}/hsqldb"/>
+    <target name="startdb" depends="init" description="Run HSQL database server with clean DB">
+        <!-- Delete database files -->
+        <delete dir="${database.dir}"/>
+        <java classname="org.hsqldb.Server"
+              fork="yes"
+              failonerror="true">
+            <arg value="-database.0"/>
+            <arg value="file:${database.dir}/db"/>
+            <classpath>
+                <pathelement location="${compile.dir}"/>
+                <pathelement location="${test.compile.dir}"/>
+                <path refid="test.compile.classpath"/>
+            </classpath>
+        </java>
+    </target>
+
+     <target name="-if.db.stop" unless="db.port.used">
+        <antcall target="-db.stop"/>
+    </target>
+
+    <target name="-db.start" depends="init" description="Run HSQL database server with clean DB">
+
+        <waitfor maxwait="1000" checkevery="100" timeoutproperty="db.port.used">
+            <socket server="127.0.0.1" port="9001"/>
+        </waitfor>
+
+        <antcall target="-if.db.stop"/>
+
+        <!-- Delete database files -->
+        <delete dir="${database.dir}"/>
+        <java classname="org.hsqldb.Server"
+              fork="yes"
+              failonerror="true">
+            <arg value="-database.0"/>
+            <arg value="file:${database.dir}/db"/>
+            <classpath>
+                <pathelement location="${compile.dir}"/>
+                <pathelement location="${test.compile.dir}"/>
+                <path refid="runtime.classpath"/>
+                <path refid="script.classpath"/>
+            </classpath>
+        </java>
+
+    </target>
+
+    <target name="-db.stop" depends="-custom-init">
+        <trycatch>
+            <try>
+                <sql driver="org.hsqldb.jdbcDriver"
+                     url="jdbc:hsqldb:hsql://localhost/"
+                     userid="sa"
+                     password=""
+                     classpathref="script.classpath"
+                     onerror="continue">
+                    SHUTDOWN;
+                </sql>
+            </try>
+            <catch>
+            </catch>
+        </trycatch>
+    </target>
+
+</project>

@@ -1,35 +1,11 @@
 <project name="custom" xmlns:ivy="antlib:org.apache.ivy.ant">
 
-    <target name="-custom-init" depends="init">
+    <target name="-custom-init" depends="init-script">
         <taskdef resource="net/sf/antcontrib/antcontrib.properties">
             <classpath>
                 <path refid="script.classpath"/>
             </classpath>
         </taskdef>
-
-        <taskdef resource="cargo.tasks">
-            <classpath>
-                <path refid="script.classpath"/>
-            </classpath>
-        </taskdef>
-    </target>
-
-
-    <property name="database.dir" value="${target.dir}/hsqldb"/>
-    <target name="startdb" depends="init" description="Run HSQL database server with clean DB">
-        <!-- Delete database files -->
-        <delete dir="${database.dir}"/>
-        <java classname="org.hsqldb.Server"
-              fork="yes"
-              failonerror="true">
-            <arg value="-database.0"/>
-            <arg value="file:${database.dir}/db"/>
-            <classpath>
-                <pathelement location="${compile.dir}"/>
-                <pathelement location="${test.compile.dir}"/>
-                <path refid="test.compile.classpath"/>
-            </classpath>
-        </java>
     </target>
 
     <target name="run-systemtest" depends="-custom-init">
@@ -75,67 +51,62 @@
         <!--</trycatch>-->
     </target>
 
-    <target name="-if.db.stop" unless="db.port.used">
-        <antcall target="-db.stop"/>
+    <property name="tomcat.install.dir" value="${target.dir}/apache-tomcat-6.0.26"/>
+    <available file="${tomcat.install.dir}/bin" property="tomcat.installed"/>
+
+    <!--Override this in ~/.build.local.properties-->
+    <property name="tomcat.zip.url"
+              value="http://apache.mirrors.enexis.hu/tomcat/tomcat-6/v6.0.26/bin/apache-tomcat-6.0.26.zip"/>
+
+    <target name="install-tomcat" unless="tomcat.installed">
+        <get src="${tomcat.zip.url}" dest="${target.dir}/tomcat.zip"/>
+        <unzip src="${target.dir}/tomcat.zip" dest="${target.dir}"/>
+        <copy file="${script.dir}/tomcat-users.xml" todir="${tomcat.install.dir}/conf" overwrite="true"/>
     </target>
 
-    <target name="-db.start" depends="init" description="Run HSQL database server with clean DB">
-
-        <waitfor maxwait="1000" checkevery="100" timeoutproperty="db.port.used">
-            <socket server="127.0.0.1" port="9001"/>
-        </waitfor>
-
-        <antcall target="-if.db.stop"/>
-
-        <!-- Delete database files -->
-        <delete dir="${database.dir}"/>
-        <java classname="org.hsqldb.Server"
-              fork="yes"
-              failonerror="true">
-            <arg value="-database.0"/>
-            <arg value="file:${database.dir}/db"/>
-            <classpath>
-                <pathelement location="${compile.dir}"/>
-                <pathelement location="${test.compile.dir}"/>
-                <path refid="runtime.classpath"/>
-                <path refid="script.classpath"/>
-            </classpath>
+    <target name="start-tomcat" depends="install-tomcat">
+        <echo message="Starting tomcat..."/>
+        <java jar="${tomcat.install.dir}/bin/bootstrap.jar" fork="true">
+            <jvmarg value="-Dcatalina.home=${tomcat.install.dir}"/>
         </java>
+    </target>
+
+    <target name="start-app" depends="-custom-init, build-war">
+        <!--<trycatch>-->
+            <!--<try>-->
+                <parallel failonany="true">
+                    <sequential>
+                        <echo message="calling start-tomcat"/>
+                        <antcall target="start-tomcat"/>
+                    </sequential>
+                    <sequential>
+                        <waitfor maxwait="20000" checkevery="1000" timeoutproperty="tomcat.start.timeout">
+                            <http url="http://localhost:8080/"/>
+                        </waitfor>
+                        <fail if="tomcat.start.timeout" message="tomcat not started"/>
+                        <echo message="Tomcat started, deploying app..."/>
+                        <antcall target="deploy"/>
+                    </sequential>
+                    <sequential>
+                        <waitfor maxwait="30000" checkevery="1000" timeoutproperty="application.start.timeout">
+                            <http url="http://localhost:8080/freelang"/>
+                        </waitfor>
+                        <fail if="application.start.timeout" message="app not started"/>
+                        <echo message="DONE ..."/>
+                    </sequential>
+                </parallel>
+            <!--</try>-->
+            <!--<catch>-->
+                <!--<antcall target="stop-app"/>-->
+                <!--<fail message="Tomcat start timeout" unless="tomcat.start.timeout"/>-->
+                <!--<fail message="Deploy timeout" unless="application.start.timeout"/>-->
+                <!--<fail message="Caught unknown exception!!"/>-->
+            <!--</catch>-->
+        <!--</trycatch>-->
 
     </target>
 
-    <target name="-db.stop" depends="-custom-init">
-        <trycatch>
-            <try>
-                <sql driver="org.hsqldb.jdbcDriver"
-                     url="jdbc:hsqldb:hsql://localhost/"
-                     userid="sa"
-                     password=""
-                     classpathref="script.classpath"
-                     onerror="continue">
-                    SHUTDOWN;
-                </sql>
-            </try>
-            <catch>
-            </catch>
-        </trycatch>
-    </target>
-
-    <available file="${target.dir}/tomcat" property="tomcat.installed"/>
-
-    <target name="install-tomcat" depends="-custom-init">
-        <cargo containerId="tomcat55" >
-            <zipUrlInstaller
-                    installUrl="http://xenia.sote.hu/ftp/mirrors/www.apache.org/tomcat/tomcat-5/v5.5.28/bin/apache-tomcat-5.5.28.zip"
-                    installDir="${target.dir}/tomcat"/>
-            <configuration>
-                <property name="cargo.servlet.port" value="8180"/>
-            </configuration>
-        </cargo>
-    </target>
-
-    <target name="run-tomcat" depends="install-tomcat">
-
+    <target name="testing">
     </target>
 
 </project>

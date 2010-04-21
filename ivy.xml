@@ -8,30 +8,30 @@
         <conf name="script"/>
     </configurations>
     <dependencies>
-        <dependency org="junit" name="junit" rev="4.6" conf="test->default"/>
-        <dependency org="hsqldb" name="hsqldb" rev="1.8.0.10" conf="test->default; script->default"/>
-        <dependency org="org.apache.maven" name="maven-ant-tasks" rev="2.0.10" conf="script->default"/>
-        
-        <dependency org="org.easymock" name="easymock" rev="2.5.2" conf="test->default"/>
-
         <dependency org="org.hibernate" name="hibernate-annotations" rev="3.4.0.GA" conf="default->default"/>
-        <!--<dependency org="org.hibernate" name="hibernate-entitymanager" rev="3.4.0.GA" conf="default->default"/>-->
         <dependency org="org.hibernate" name="ejb3-persistence" rev="1.0.2.GA" conf="default->default"/>
         <dependency org="org.hibernate" name="hibernate-c3p0" rev="3.3.2.GA" conf="default->default"/>
         <dependency org="jboss" name="javassist" rev="3.1" conf="default->default"/>
 
+        <dependency org="commons-io" name="commons-io" rev="1.4" conf="default->default"/>
+
+        <!--<dependency org="org.apache.struts" name="struts2-core" rev="2.1.8" conf="default->default"/>-->
+        <dependency org="org.apache.struts" name="struts2-convention-plugin" rev="2.1.8" conf="default->default"/>
+        <!--<dependency org="org.apache.struts" name="struts2-config-browser-plugin" rev="2.1.8.1" conf="default->default"/>-->
+
+        <dependency org="javax.servlet" name="servlet-api" rev="2.5" conf="nodeploy->default"/>
+        <!--<dependency org="jstl" name="jstl" rev="1.1.2" conf="default->default"/>-->
+        <!--<dependency org="taglibs" name="standard" rev="1.1.2" conf="default->default"/>-->
+
         <dependency org="log4j" name="log4j" rev="1.2.14" conf="default->default"/>
         <dependency org="org.slf4j" name="slf4j-log4j12" rev="1.4.2" conf="default->default"/>
 
+        <dependency org="junit" name="junit" rev="4.6" conf="test->default"/>
+        <dependency org="org.easymock" name="easymock" rev="2.5.2" conf="test->default"/>
+
         <dependency org="ant-contrib" name="ant-contrib" rev="1.0b3" conf="script->default"/>
-
-        <!--<dependency org="org.apache.struts" name="struts2-core" rev="2.1.8" conf="default->default; test->default"/>-->
-        <dependency org="org.apache.struts" name="struts2-convention-plugin" rev="2.1.8" conf="default->default"/>
-
-        <dependency org="javax.servlet" name="servlet-api" rev="2.5" conf="nodeploy->default"/>
-        <dependency org="jstl" name="jstl" rev="1.1.2" conf="default->default"/>
-        <dependency org="taglibs" name="standard" rev="1.1.2" conf="default->default"/>
-
-        <dependency org="org.codehaus.cargo" name="cargo-ant" rev="1.0" conf="script->default"/>
+        <dependency org="tomcat" name="catalina-ant" rev="5.5.12" conf="script->default"/>
+        <!--<dependency org="org.apache.maven" name="maven-ant-tasks" rev="2.0.10" conf="script->default"/>-->
+        <!--<dependency org="hsqldb" name="hsqldb" rev="1.8.0.10" conf="test->default; script->default"/>-->
     </dependencies>
 </ivy-module>
